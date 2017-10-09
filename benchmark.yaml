@@ -1,0 +1,124 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'EC2 Network Benchmark: benchmark'
+Metadata:
+  'AWS::CloudFormation::Interface':
+    ParameterGroups:
+    - Label:
+        default: 'Parent Stacks'
+      Parameters:
+      - ParentVPCStack
+      - ParentGlobalStack
+    - Label:
+        default: 'EC2 Parameters'
+      Parameters:
+      - InstanceTypeClient
+      - InstanceTypeServer
+Parameters:
+  ParentVPCStack:
+    Description: 'Stack name of parent VPC stack based on vpc/vpc-*azs.yaml template.'
+    Type: String
+  ParentGlobalStack:
+    Description: 'Stack name of parent global stack based on global.yaml template.'
+    Type: String
+    Default: ''
+  InstanceTypeClient:
+    Description: 'The instance type for the EC2 instance.'
+    Type: String
+    Default: 't2.micro'
+  InstanceTypeServer:
+    Description: 'The instance type for the EC2 instance.'
+    Type: String
+    Default: 't2.micro'
+Mappings:
+  RegionMap:
+    'ap-south-1':
+      AMI: 'ami-d7abd1b8'
+    'eu-west-2':
+      AMI: 'ami-489f8e2c'
+    'eu-west-1':
+      AMI: 'ami-ebd02392'
+    'ap-northeast-2':
+      AMI: 'ami-8663bae8'
+    'ap-northeast-1':
+      AMI: 'ami-4af5022c'
+    'sa-east-1':
+      AMI: 'ami-d27203be'
+    'ca-central-1':
+      AMI: 'ami-5ac17f3e'
+    'ap-southeast-1':
+      AMI: 'ami-fdb8229e'
+    'ap-southeast-2':
+      AMI: 'ami-30041c53'
+    'eu-central-1':
+      AMI: 'ami-657bd20a'
+    'us-east-1':
+      AMI: 'ami-4fffc834'
+    'us-east-2':
+      AMI: 'ami-ea87a78f'
+    'us-west-1':
+      AMI: 'ami-3a674d5a'
+    'us-west-2':
+      AMI: 'ami-aa5ebdd2'
+Resources:
+  ClientMachine:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      IamInstanceProfile:
+        'Fn::ImportValue': !Sub '${ParentGlobalStack}-IAMInstanceProfileName'
+      ImageId: !FindInMap [RegionMap, !Ref 'AWS::Region', AMI]
+      InstanceType: !Ref InstanceTypeClient
+      SecurityGroupIds:
+      - 'Fn::ImportValue': !Sub '${ParentGlobalStack}-SecurityGroupId'
+      KeyName: 'awittig' # TODO remove
+      Monitoring: true
+      UserData:
+        'Fn::Base64': !Sub |
+          #!/bin/bash -x
+          yum-config-manager --enable epel
+          yum clean all
+          yum -y install iperf3 jq
+          iperf3 --client ${ServerMachine.PrivateIp} --time 30 --version4 --json | jq -c '.' | aws s3 cp - "s3://ec2-network-benchmark-global-s3bucket-1ih4oztgq5iuh/d=$(date +%Y-%m-%d)/r=${AWS::Region}/it=${InstanceTypeClient}/t=default/$(date +%s).json"
+          iperf3 --client ${ServerMachine.PrivateIp} --time 30 --version4 --json --reverse | jq -c '.' | aws s3 cp - "s3://ec2-network-benchmark-global-s3bucket-1ih4oztgq5iuh/d=$(date +%Y-%m-%d)/r=${AWS::Region}/it=${InstanceTypeClient}/t=reverse/$(date +%s).json"
+          /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource ClientMachine
+      SubnetId:
+        'Fn::ImportValue': !Sub '${ParentVPCStack}-SubnetAPublic'
+      Tags:
+      - Key: Name
+        Value: 'EC2 Network Benchmark Client'
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: PT5M
+  ServerMachine:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      IamInstanceProfile:
+        'Fn::ImportValue': !Sub '${ParentGlobalStack}-IAMInstanceProfileName'
+      ImageId: !FindInMap [RegionMap, !Ref 'AWS::Region', AMI]
+      InstanceType: !Ref InstanceTypeServer
+      SecurityGroupIds:
+      - 'Fn::ImportValue': !Sub '${ParentGlobalStack}-SecurityGroupId'
+      KeyName: 'awittig' # TODO remove
+      Monitoring: true
+      UserData:
+        'Fn::Base64': !Sub |
+          #!/bin/bash -x
+          yum-config-manager --enable epel
+          yum clean all
+          yum -y install iperf3
+          /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource ServerMachine
+          iperf3 -s
+      SubnetId:
+        'Fn::ImportValue': !Sub '${ParentVPCStack}-SubnetAPublic'
+      Tags:
+      - Key: Name
+        Value: 'EC2 Network Benchmark Server'
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: PT5M
+Outputs:
+  StackName:
+    Description: 'Stack name'
+    Value: !Sub '${AWS::StackName}'

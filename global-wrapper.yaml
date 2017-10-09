@@ -1,0 +1,36 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'EC2 Network Benchmark: global (wrapper)'
+Parameters:
+  StackName:
+    Description: 'A wrapper for the StackName'
+    Type: String
+  SecurityGroupId:
+    Description: 'A wrapper for the SecurityGroupId'
+    Type: String
+  S3BucketName:
+    Description: 'A wrapper for the S3BucketName'
+    Type: String
+  IAMInstanceProfileName:
+    Description: 'A wrapper for the IAMInstanceProfileName'
+    Type: String
+Resources: { }
+Outputs:
+  StackName:
+    Description: 'Stack name'
+    Value: !Sub '${AWS::StackName}'
+  SecurityGroupId:
+    Description: 'The security group id allowing traffic for ipref3.'
+    Value: !Sub '${SecurityGroup.GroupId}'
+    Export:
+      Name: !Sub '${AWS::StackName}-SecurityGroupId'
+  S3BucketName:
+    Description: 'The name of the S3 bucket storing the network benchmark results.'
+    Value: !Ref S3Bucket
+    Export:
+      Name: !Sub '${AWS::StackName}-S3BucketName'
+  IAMInstanceProfileName:
+    Description: 'The name of the IAM instance profile granting write access to S3 for storing network benchmark results.'
+    Value: !Ref IAMInstanceProfile
+    Export:
+      Name: !Sub '${AWS::StackName}-IAMInstanceProfileName'

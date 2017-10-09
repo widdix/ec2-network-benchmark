@@ -1,0 +1,78 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'EC2 Network Benchmark: global'
+Metadata:
+  'AWS::CloudFormation::Interface':
+    ParameterGroups:
+    - Label:
+        default: 'Parent Stacks'
+      Parameters:
+      - ParentVPCStack
+Parameters:
+  ParentVPCStack:
+    Description: 'Stack name of parent VPC stack based on vpc/vpc-*azs.yaml template.'
+    Type: String
+Resources:
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties: {}
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub '${AWS::StackName}-client'
+      VpcId:
+        'Fn::ImportValue': !Sub '${ParentVPCStack}-VPC'
+  SecurityGroupIngress:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Properties:
+      GroupId: !Sub '${SecurityGroup.GroupId}'
+      IpProtocol: tcp
+      FromPort: '5201'
+      ToPort: '5201'
+      SourceSecurityGroupId: !Sub '${SecurityGroup.GroupId}'
+  IAMInstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      Path: '/'
+      Roles:
+      - !Ref IAMRole
+  IAMRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - 'ec2.amazonaws.com'
+          Action:
+          - 'sts:AssumeRole'
+      Path: '/'
+      Policies:
+      - PolicyName: s3
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: 's3:PutObject'
+            Resource: !Sub '${S3Bucket.Arn}/*'
+Outputs:
+  StackName:
+    Description: 'Stack name'
+    Value: !Sub '${AWS::StackName}'
+  SecurityGroupId:
+    Description: 'The security group id allowing traffic for ipref3.'
+    Value: !Sub '${SecurityGroup.GroupId}'
+    Export:
+      Name: !Sub '${AWS::StackName}-SecurityGroupId'
+  S3BucketName:
+    Description: 'The name of the S3 bucket storing the network benchmark results.'
+    Value: !Ref S3Bucket
+    Export:
+      Name: !Sub '${AWS::StackName}-S3BucketName'
+  IAMInstanceProfileName:
+    Description: 'The name of the IAM instance profile granting write access to S3 for storing network benchmark results.'
+    Value: !Ref IAMInstanceProfile
+    Export:
+      Name: !Sub '${AWS::StackName}-IAMInstanceProfileName'
