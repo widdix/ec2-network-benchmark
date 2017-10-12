@@ -25,7 +25,7 @@ pipeline {
   }
   post {
     failure {
-      mail to: andreas@widdix.de, subject: "FAILURE: ${currentBuild.fullDisplayName}", body: 'EC2 Networking Benchmark failed: ${currentBuild.fullDisplayName}.'
+      mail to: 'andreas@widdix.de', subject: "FAILURE: ${currentBuild.fullDisplayName}", body: "EC2 Networking Benchmark failed: ${currentBuild.fullDisplayName}."
     }
   }
 }
