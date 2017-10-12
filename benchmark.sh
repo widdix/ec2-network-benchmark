@@ -10,18 +10,15 @@ function create {
 # $1 = client instance type
 function wait_create_complete {
   aws cloudformation wait stack-create-complete --stack-name ec2-network-benchmark-${1//./-}
-  aws cloudformation delete-stack --stack-name ec2-network-benchmark-${1//./-} 
 }
 
 # $1 = client instance type
 function delete {
-  aws cloudformation wait stack-create-complete --stack-name ec2-network-benchmark-${1//./-}
   aws cloudformation delete-stack --stack-name ec2-network-benchmark-${1//./-} 
 }
 
 # $1 = client instance type
 function wait_delete_complete {
-  aws cloudformation wait stack-delete-complete --stack-name ec2-network-benchmark-${1//./-}
   aws cloudformation delete-stack --stack-name ec2-network-benchmark-${1//./-} 
 }
 
