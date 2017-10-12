@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -ex
 
 INSTANCE_TYPE_SERVER=m4.16xlarge
 
@@ -86,3 +86,24 @@ create m4.16xlarge
 wait_create_complete m4.16xlarge
 delete m4.16xlarge
 wait_delete_complete m4.16xlarge
+
+# m3
+create m3.medium
+create m3.large
+create m3.xlarge
+create m3.2xlarge
+
+wait_create_complete m3.medium
+wait_create_complete m3.large
+wait_create_complete m3.xlarge
+wait_create_complete m3.2xlarge
+
+delete m3.medium
+delete m3.large
+delete m3.xlarge
+delete m3.2xlarge
+
+wait_delete_complete m3.medium
+wait_delete_complete m3.large
+wait_delete_complete m3.xlarge
+wait_delete_complete m3.2xlarge
