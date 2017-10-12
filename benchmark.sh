@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -x
 
 INSTANCE_TYPE_SERVER=m4.16xlarge
 
