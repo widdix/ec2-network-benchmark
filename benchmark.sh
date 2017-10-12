@@ -19,7 +19,7 @@ function delete {
 
 # $1 = client instance type
 function wait_delete_complete {
-  aws cloudformation delete-stack --stack-name ec2-network-benchmark-${1//./-} 
+  aws cloudformation wait stack-delete-complete --stack-name ec2-network-benchmark-${1//./-}
 }
 
 # t2
