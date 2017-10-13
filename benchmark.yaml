@@ -79,10 +79,12 @@ Resources:
           - "  yum-config-manager --enable epel \n"
           - "  yum clean all \n"
           - "  yum -y install iperf3 jq \n"
-          - !Sub "  iperf3 --client ${ServerMachine.PrivateIp} --time 30 --version4 --json | jq -c '.' | aws s3 cp - \"s3://"
+          - "  yum -y install iperf3 jq \n"
+          - "  sleep 60 \n"
+          - !Sub "  iperf3 --client ${ServerMachine.PrivateIp} --time 60 --version4 --json | jq -c '.' | aws s3 cp - \"s3://"
           - 'Fn::ImportValue': !Sub '${ParentGlobalStack}-S3BucketName'
           - !Sub "/d=$(date +%Y-%m-%d)/r=${AWS::Region}/it=${InstanceTypeClient}/t=default/$(date +%s).json\" \n"
-          - !Sub "  iperf3 --client ${ServerMachine.PrivateIp} --time 30 --version4 --json --reverse | jq -c '.' | aws s3 cp - \"s3://"
+          - !Sub "  iperf3 --client ${ServerMachine.PrivateIp} --time 60 --version4 --json --reverse | jq -c '.' | aws s3 cp - \"s3://"
           - 'Fn::ImportValue': !Sub '${ParentGlobalStack}-S3BucketName'
           - !Sub "/d=$(date +%Y-%m-%d)/r=${AWS::Region}/it=${InstanceTypeClient}/t=reverse/$(date +%s).json\" \n"
           - "TRY\n"
