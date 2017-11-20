@@ -29,10 +29,12 @@ SELECT
 FROM networkbenchmark;
 
 
+# results in Gbit/s
 SELECT 
-  min("end"."sum_sent"."bits_per_second") AS sent_bits_per_second_min, 
-  max("end"."sum_sent"."bits_per_second") AS sent_bits_per_second_max, 
-  variance("end"."sum_sent"."bits_per_second") AS sent_bits_per_second_variance, 
+  (min("end"."sum_sent"."bits_per_second")/1000000000) AS sent_bits_per_second_min,
+  (max("end"."sum_sent"."bits_per_second")/1000000000) AS sent_bits_per_second_max,
+  (avg("end"."sum_sent"."bits_per_second")/1000000000) AS sent_bits_per_second_avg,
+  (stddev("end"."sum_sent"."bits_per_second")/1000000000) AS sent_bits_per_second_stddev,
   r, 
   it 
 FROM networkbenchmark

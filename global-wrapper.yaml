@@ -2,11 +2,8 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: 'EC2 Network Benchmark: global (wrapper)'
 Parameters:
-  StackName:
-    Description: 'A wrapper for the StackName'
-    Type: String
-  SecurityGroupId:
-    Description: 'A wrapper for the SecurityGroupId'
+  ParentVPCStack:
+    Description: 'Stack name of parent VPC stack based on vpc/vpc-*azs.yaml template.'
     Type: String
   S3BucketName:
     Description: 'A wrapper for the S3BucketName'
@@ -14,11 +11,22 @@ Parameters:
   IAMInstanceProfileName:
     Description: 'A wrapper for the IAMInstanceProfileName'
     Type: String
-Resources: { }
+Resources:
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub '${AWS::StackName}-client'
+      VpcId:
+        'Fn::ImportValue': !Sub '${ParentVPCStack}-VPC'
+  SecurityGroupIngress:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Properties:
+      GroupId: !Sub '${SecurityGroup.GroupId}'
+      IpProtocol: tcp
+      FromPort: '5201'
+      ToPort: '5201'
+      SourceSecurityGroupId: !Sub '${SecurityGroup.GroupId}'
 Outputs:
-  StackName:
-    Description: 'Stack name'
-    Value: !Sub '${AWS::StackName}'
   SecurityGroupId:
     Description: 'The security group id allowing traffic for ipref3.'
     Value: !Sub '${SecurityGroup.GroupId}'
@@ -26,11 +34,11 @@ Outputs:
       Name: !Sub '${AWS::StackName}-SecurityGroupId'
   S3BucketName:
     Description: 'The name of the S3 bucket storing the network benchmark results.'
-    Value: !Ref S3Bucket
+    Value: !Ref S3BucketName
     Export:
       Name: !Sub '${AWS::StackName}-S3BucketName'
   IAMInstanceProfileName:
     Description: 'The name of the IAM instance profile granting write access to S3 for storing network benchmark results.'
-    Value: !Ref IAMInstanceProfile
+    Value: !Ref IAMInstanceProfileName
     Export:
       Name: !Sub '${AWS::StackName}-IAMInstanceProfileName'
