@@ -11,7 +11,7 @@ CREATE EXTERNAL TABLE networkbenchmark (
           `sum_received`:struct<`bits_per_second`:decimal(38,6),`retransmits`:int>
           > 
 )
-PARTITIONED BY (d string, r string, it string, t string) 
+PARTITIONED BY (d date, r string, it string, t string)
 ROW FORMAT SERDE 'org.openx.data.jsonserde.JsonSerDe'
 LOCATION 's3://ec2-network-benchmark-global-s3bucket-1e2fy8tntcdz5/';
 
@@ -38,5 +38,6 @@ SELECT
   r, 
   it 
 FROM networkbenchmark
+WHERE d >= from_iso8601_date('2017-11-21')
 GROUP BY r, it
 ORDER BY r, it;
