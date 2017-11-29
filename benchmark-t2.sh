@@ -27,26 +27,26 @@ create t2.micro
 create t2.small
 create t2.medium
 create t2.large
+create t2.2xlarge
 
 wait_create_complete t2.nano
 wait_create_complete t2.micro
 wait_create_complete t2.small
 wait_create_complete t2.medium
 wait_create_complete t2.large
+wait_create_complete t2.2xlarge
 
 delete t2.nano
 delete t2.micro
 delete t2.small
 delete t2.medium
 delete t2.large
+delete t2.2xlarge
 
 wait_delete_complete t2.nano
 wait_delete_complete t2.micro
 wait_delete_complete t2.small
 wait_delete_complete t2.medium
 wait_delete_complete t2.large
-
-create t2.2xlarge
-wait_create_complete t2.2xlarge
-delete t2.2xlarge
 wait_delete_complete t2.2xlarge
+
