@@ -27,26 +27,25 @@ create m5.xlarge
 create m5.2xlarge
 create m5.4xlarge
 create m5.12xlarge
+create m5.24xlarge
 
 wait_create_complete m5.large
 wait_create_complete m5.xlarge
 wait_create_complete m5.2xlarge
 wait_create_complete m5.4xlarge
 wait_create_complete m5.12xlarge
+wait_create_complete m5.24xlarge
 
 delete m5.large
 delete m5.xlarge
 delete m5.2xlarge
 delete m5.4xlarge
 delete m5.12xlarge
+delete m5.24xlarge
 
 wait_delete_complete m5.large
 wait_delete_complete m5.xlarge
 wait_delete_complete m5.2xlarge
 wait_delete_complete m4.4xlarge
 wait_delete_complete m5.4xlarge
-
-create m5.24xlarge
-wait_create_complete m5.24xlarge
-delete m5.24xlarge
 wait_delete_complete m5.24xlarge

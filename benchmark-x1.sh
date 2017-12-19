@@ -22,31 +22,30 @@ function wait_delete_complete {
   aws cloudformation wait stack-delete-complete --stack-name ec2-network-benchmark-${1//./-}
 }
 
-create m4.large
-create m4.xlarge
-create m4.2xlarge
-create m4.4xlarge
-create m4.10xlarge
-create m4.16xlarge
+create x1e.xlarge
+create x1e.2xlarge
+create x1e.4xlarge
+create x1e.8xlarge
+create x1e.16xlarge
+create x1e.32xlarge
 
-wait_create_complete m4.large
-wait_create_complete m4.xlarge
-wait_create_complete m4.2xlarge
-wait_create_complete m4.4xlarge
-wait_create_complete m4.10xlarge
-wait_create_complete m4.16xlarge
+wait_create_complete x1e.xlarge
+wait_create_complete x1e.2xlarge
+wait_create_complete x1e.4xlarge
+wait_create_complete x1e.8xlarge
+wait_create_complete x1e.16xlarge
+wait_create_complete x1e.32xlarge
 
-delete m4.large
-delete m4.xlarge
-delete m4.2xlarge
-delete m4.4xlarge
-delete m4.10xlarge
-delete m4.16xlarge
+delete x1e.xlarge
+delete x1e.2xlarge
+delete x1e.4xlarge
+delete x1e.8xlarge
+delete x1e.16xlarge
+delete x1e.32xlarge
 
-wait_delete_complete m4.large
-wait_delete_complete m4.xlarge
-wait_delete_complete m4.2xlarge
-wait_delete_complete m4.4xlarge
-wait_delete_complete m4.10xlarge
-wait_delete_complete m4.16xlarge
-
+wait_delete_complete x1e.xlarge
+wait_delete_complete x1e.2xlarge
+wait_delete_complete x1e.4xlarge
+wait_delete_complete x1e.8xlarge
+wait_delete_complete x1e.16xlarge
+wait_delete_complete x1e.32xlarge

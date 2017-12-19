@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-INSTANCE_TYPE_SERVER=m4.16xlarge
+INSTANCE_TYPE_SERVER=m5.24xlarge
 
 # $1 = client instance type
 function create {
