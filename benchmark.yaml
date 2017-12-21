@@ -61,16 +61,17 @@ Mappings:
     'us-west-2':
       AMI: 'ami-aa5ebdd2'
 Resources:
-  ClientMachine:
-    Type: 'AWS::EC2::Instance'
+  ClientMachineLaunchConfig:
+    Type: 'AWS::AutoScaling::LaunchConfiguration'
     Properties:
+      SpotPrice: '30'
       IamInstanceProfile:
         'Fn::ImportValue': !Sub '${ParentGlobalStack}-IAMInstanceProfileName'
       ImageId: !FindInMap [RegionMap, !Ref 'AWS::Region', AMI]
       InstanceType: !Ref InstanceTypeClient
-      SecurityGroupIds:
+      SecurityGroups:
       - 'Fn::ImportValue': !Sub '${ParentGlobalStack}-SecurityGroupId'
-      Monitoring: true
+      InstanceMonitoring: true
       UserData: 
         'Fn::Base64': !Join
         - ''
@@ -79,35 +80,45 @@ Resources:
           - "  yum-config-manager --enable epel \n"
           - "  yum clean all \n"
           - "  yum -y install iperf3 jq \n"
-          - "  yum -y install iperf3 jq \n"
           - "  sleep 60 \n"
-          - !Sub "  iperf3 --client ${ServerMachine.PrivateIp} --time 60 --version4 --json -P 10 | jq -c '.' | aws s3 cp - \"s3://"
+          - !Sub "SERVER_INSTANCE_ID=$(aws autoscaling describe-auto-scaling-groups --region ${AWS::Region} --auto-scaling-group-name ${ServerMachineAutoScalingGroup} --query AutoScalingGroups[*].Instances[0].InstanceId --output text) \n"
+          - !Sub "SERVER_PRIVATE_IP=$(aws ec2 describe-instances --region ${AWS::Region} --instance-ids $SERVER_INSTANCE_ID --query Reservations[0].Instances[0].PrivateIpAddress --output text) \n"
+          - " iperf3 --client $SERVER_PRIVATE_IP --time 30 --version4 --json -P 10 | jq -c '.' | aws s3 cp - \"s3://"
           - 'Fn::ImportValue': !Sub '${ParentGlobalStack}-S3BucketName'
           - !Sub "/d=$(date +%Y-%m-%d)/r=${AWS::Region}/it=${InstanceTypeClient}/t=default/$(date +%s).json\" \n"
-          - !Sub "  iperf3 --client ${ServerMachine.PrivateIp} --time 60 --version4 --json --reverse -P 10 | jq -c '.' | aws s3 cp - \"s3://"
+          - "  iperf3 --client $SERVER_PRIVATE_IP --time 30 --version4 --json --reverse -P 10 | jq -c '.' | aws s3 cp - \"s3://"
           - 'Fn::ImportValue': !Sub '${ParentGlobalStack}-S3BucketName'
           - !Sub "/d=$(date +%Y-%m-%d)/r=${AWS::Region}/it=${InstanceTypeClient}/t=reverse/$(date +%s).json\" \n"
           - "TRY\n"
-          - !Sub "/opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource ClientMachine \n"
-      SubnetId:
-        'Fn::ImportValue': !Sub '${ParentVPCStack}-SubnetAPublic'
+          - !Sub "/opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource ClientMachineAutoScalingGroup \n"
+  ClientMachineAutoScalingGroup:
+    Type: 'AWS::AutoScaling::AutoScalingGroup'
+    Properties:
+      LaunchConfigurationName:  !Ref ClientMachineLaunchConfig
+      MinSize: 1
+      MaxSize: 1
+      DesiredCapacity: 1
+      VPCZoneIdentifier:
+      - 'Fn::ImportValue': !Sub '${ParentVPCStack}-SubnetAPublic'
       Tags:
       - Key: Name
         Value: 'EC2 Network Benchmark Client'
+        PropagateAtLaunch: true
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: PT5M
-  ServerMachine:
-    Type: 'AWS::EC2::Instance'
+        Timeout: PT15M
+  ServerMachineLaunchConfig:
+    Type: 'AWS::AutoScaling::LaunchConfiguration'
     Properties:
+      SpotPrice: '30'
       IamInstanceProfile:
         'Fn::ImportValue': !Sub '${ParentGlobalStack}-IAMInstanceProfileName'
       ImageId: !FindInMap [RegionMap, !Ref 'AWS::Region', AMI]
       InstanceType: !Ref InstanceTypeServer
-      SecurityGroupIds:
+      SecurityGroups:
       - 'Fn::ImportValue': !Sub '${ParentGlobalStack}-SecurityGroupId'
-      Monitoring: true
+      InstanceMonitoring: true
       UserData:
         'Fn::Base64': !Sub |
           #!/bin/bash -x
@@ -116,17 +127,25 @@ Resources:
             yum clean all
             yum -y install iperf3
           TRY
-          /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource ServerMachine
+          /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource ServerMachineAutoScalingGroup
           iperf3 -s
-      SubnetId:
-        'Fn::ImportValue': !Sub '${ParentVPCStack}-SubnetAPublic'
+  ServerMachineAutoScalingGroup:
+    Type: "AWS::AutoScaling::AutoScalingGroup"
+    Properties:
+      LaunchConfigurationName:  !Ref ServerMachineLaunchConfig
+      MinSize: 1
+      MaxSize: 1
+      DesiredCapacity: 1
+      VPCZoneIdentifier:
+      - 'Fn::ImportValue': !Sub '${ParentVPCStack}-SubnetAPublic'
       Tags:
       - Key: Name
         Value: 'EC2 Network Benchmark Server'
+        PropagateAtLaunch: true
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: PT5M
+        Timeout: PT15M
 Outputs:
   StackName:
     Description: 'Stack name'

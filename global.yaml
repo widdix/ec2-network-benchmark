@@ -57,6 +57,11 @@ Resources:
           - Effect: Allow
             Action: 's3:PutObject'
             Resource: !Sub '${S3Bucket.Arn}/*'
+          - Effect: Allow
+            Action:
+            - 'autoscaling:DescribeAutoScalingGroups'
+            - 'ec2:DescribeInstances'
+            Resource: '*'
 Outputs:
   StackName:
     Description: 'Stack name'
