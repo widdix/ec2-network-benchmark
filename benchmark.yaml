@@ -26,10 +26,18 @@ Parameters:
     Description: 'The instance type for the EC2 instance.'
     Type: String
     Default: 't2.micro'
+  SpotPriceClient:
+    Description: 'The spot price for the EC2 instance.'
+    Type: Number
+    Default: 0
   InstanceTypeServer:
     Description: 'The instance type for the EC2 instance.'
     Type: String
     Default: 't2.micro'
+  SpotPriceServer:
+    Description: 'The spot price for the EC2 instance.'
+    Type: Number
+    Default: 0
 Mappings:
   RegionMap:
     'ap-south-1':
@@ -60,11 +68,14 @@ Mappings:
       AMI: 'ami-3a674d5a'
     'us-west-2':
       AMI: 'ami-aa5ebdd2'
+Conditions:
+  HasSpotPriceClient: !Not [!Equals [!Ref SpotPriceClient, 0]]
+  HasSpotPriceServer: !Not [!Equals [!Ref SpotPriceServer, 0]]
 Resources:
   ClientMachineLaunchConfig:
     Type: 'AWS::AutoScaling::LaunchConfiguration'
     Properties:
-      SpotPrice: '30'
+      SpotPrice: !If [HasSpotPriceClient, !Ref SpotPriceClient, !Ref 'AWS::NoValue']
       IamInstanceProfile:
         'Fn::ImportValue': !Sub '${ParentGlobalStack}-IAMInstanceProfileName'
       ImageId: !FindInMap [RegionMap, !Ref 'AWS::Region', AMI]
@@ -107,11 +118,11 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: PT15M
+        Timeout: PT5M
   ServerMachineLaunchConfig:
     Type: 'AWS::AutoScaling::LaunchConfiguration'
     Properties:
-      SpotPrice: '30'
+      SpotPrice: !If [HasSpotPriceServer, !Ref SpotPriceServer, !Ref 'AWS::NoValue']
       IamInstanceProfile:
         'Fn::ImportValue': !Sub '${ParentGlobalStack}-IAMInstanceProfileName'
       ImageId: !FindInMap [RegionMap, !Ref 'AWS::Region', AMI]
@@ -145,7 +156,7 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: PT15M
+        Timeout: PT5M
 Outputs:
   StackName:
     Description: 'Stack name'
