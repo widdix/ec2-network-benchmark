@@ -28,7 +28,7 @@ create m5.xlarge 0.214
 create m5.2xlarge 0.428
 create m5.4xlarge 0.856
 create m5.12xlarge 2.568
-create m5.24xlarge 5.136
+create m5.24xlarge
 
 wait_create_complete m5.large
 wait_create_complete m5.xlarge
