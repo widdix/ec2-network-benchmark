@@ -26,7 +26,7 @@ function wait_delete_complete {
 create d2.xlarge 0.735
 create d2.2xlarge 1.47
 create d2.4xlarge 2.94
-create d2.8xlarge 5.88
+create d2.8xlarge 0
 
 wait_create_complete d2.xlarge
 wait_create_complete d2.2xlarge

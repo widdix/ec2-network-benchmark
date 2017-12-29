@@ -25,7 +25,7 @@ function wait_delete_complete {
 
 create g3.4xlarge 1.21
 create g3.8xlarge 2.42
-create g3.16xlarge 4.84
+create g3.16xlarge 0
 
 wait_create_complete g3.4xlarge
 wait_create_complete g3.8xlarge
