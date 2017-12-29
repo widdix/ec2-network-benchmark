@@ -1,7 +1,7 @@
 #!/bin/bash -x
 
 INSTANCE_TYPE_SERVER="c5.18xlarge"
-SPOT_PRICE_SERVER="3.456"
+SPOT_PRICE_SERVER="5.136"
 
 # $1 = client instance type
 function create {
@@ -26,9 +26,9 @@ function wait_delete_complete {
 create m5.large 0.107
 create m5.xlarge 0.214
 create m5.2xlarge 0.428
-create m5.4xlarge 0.856
-create m5.12xlarge 2.568
-create m5.24xlarge
+create m5.4xlarge 0
+create m5.12xlarge 0
+create m5.24xlarge 0
 
 wait_create_complete m5.large
 wait_create_complete m5.xlarge

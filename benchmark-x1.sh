@@ -24,11 +24,11 @@ function wait_delete_complete {
 }
 
 create x1e.xlarge 1 
-create x1e.2xlarge 2
-create x1e.4xlarge 4
-create x1e.8xlarge 8
-create x1e.16xlarge 16
-create x1e.32xlarge 32
+create x1e.2xlarge 0
+create x1e.4xlarge 0
+create x1e.8xlarge 0
+create x1e.16xlarge 0
+create x1e.32xlarge 0
 
 wait_create_complete x1e.xlarge
 wait_create_complete x1e.2xlarge

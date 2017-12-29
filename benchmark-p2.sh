@@ -24,8 +24,8 @@ function wait_delete_complete {
 }
 
 create p2.xlarge 0.972
-create p2.8xlarge 7.776
-create p2.16xlarge 15.552
+create p2.8xlarge 0
+create p2.16xlarge 0
 
 wait_create_complete p2.xlarge
 wait_create_complete p2.8xlarge
