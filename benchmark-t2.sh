@@ -23,7 +23,7 @@ function wait_delete_complete {
   aws cloudformation wait stack-delete-complete --stack-name ec2-network-benchmark-${1//./-}
 }
 
-create t2.nano
+create t2.nano 0
 create t2.micro 0.0126
 create t2.small 0.025
 create t2.medium 0.05
