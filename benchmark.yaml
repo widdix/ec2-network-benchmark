@@ -159,7 +159,7 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: PT45M
+        Timeout: PT15M
 Outputs:
   StackName:
     Description: 'Stack name'
