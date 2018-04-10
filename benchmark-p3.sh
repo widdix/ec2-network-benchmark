@@ -23,7 +23,7 @@ function wait_delete_complete {
   aws cloudformation wait stack-delete-complete --stack-name ec2-network-benchmark-${1//./-}
 }
 
-create p3.2xlarge 3.305
+create p3.2xlarge 0
 create p3.8xlarge 0
 create p3.16xlarge 0
 

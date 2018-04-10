@@ -41,33 +41,35 @@ Parameters:
 Mappings:
   RegionMap:
     'ap-south-1':
-      AMI: 'ami-d7abd1b8'
+      AMI: 'ami-531a4c3c'
+    'eu-west-3':
+      AMI: 'ami-8ee056f3'
     'eu-west-2':
-      AMI: 'ami-489f8e2c'
+      AMI: 'ami-403e2524'
     'eu-west-1':
-      AMI: 'ami-ebd02392'
+      AMI: 'ami-d834aba1'
     'ap-northeast-2':
-      AMI: 'ami-8663bae8'
+      AMI: 'ami-863090e8'
     'ap-northeast-1':
-      AMI: 'ami-4af5022c'
+      AMI: 'ami-ceafcba8'
     'sa-east-1':
-      AMI: 'ami-d27203be'
+      AMI: 'ami-84175ae8'
     'ca-central-1':
-      AMI: 'ami-5ac17f3e'
+      AMI: 'ami-a954d1cd'
     'ap-southeast-1':
-      AMI: 'ami-fdb8229e'
+      AMI: 'ami-68097514'
     'ap-southeast-2':
-      AMI: 'ami-30041c53'
+      AMI: 'ami-942dd1f6'
     'eu-central-1':
-      AMI: 'ami-657bd20a'
+      AMI: 'ami-5652ce39'
     'us-east-1':
-      AMI: 'ami-4fffc834'
+      AMI: 'ami-97785bed'
     'us-east-2':
-      AMI: 'ami-ea87a78f'
+      AMI: 'ami-f63b1193'
     'us-west-1':
-      AMI: 'ami-3a674d5a'
+      AMI: 'ami-824c4ee2'
     'us-west-2':
-      AMI: 'ami-aa5ebdd2'
+      AMI: 'ami-f2d3638a'
 Conditions:
   HasSpotPriceClient: !Not [!Equals [!Ref SpotPriceClient, 0]]
   HasSpotPriceServer: !Not [!Equals [!Ref SpotPriceServer, 0]]
@@ -94,12 +96,13 @@ Resources:
           - "  sleep 60 \n"
           - !Sub "SERVER_INSTANCE_ID=$(aws autoscaling describe-auto-scaling-groups --region ${AWS::Region} --auto-scaling-group-name ${ServerMachineAutoScalingGroup} --query AutoScalingGroups[*].Instances[0].InstanceId --output text) \n"
           - !Sub "SERVER_PRIVATE_IP=$(aws ec2 describe-instances --region ${AWS::Region} --instance-ids $SERVER_INSTANCE_ID --query Reservations[0].Instances[0].PrivateIpAddress --output text) \n"
-          - " iperf3 --client $SERVER_PRIVATE_IP --time 30 --version4 --json -P 10 | jq -c '.' | aws s3 cp - \"s3://"
+          - " iperf3 --client $SERVER_PRIVATE_IP --time 1800 --interval 60 --version4 --json -P 10 | jq -c '{start: .start, intervals: .intervals, end: .end, instanceType: \""
+          - !Sub "${InstanceTypeClient}"
+          - "\", region: \""
+          - !Sub "${AWS::Region}"
+          - "\"}' | gzip | aws s3 cp - \"s3://"
           - 'Fn::ImportValue': !Sub '${ParentGlobalStack}-S3BucketName'
-          - !Sub "/d=$(date +%Y-%m-%d)/r=${AWS::Region}/it=${InstanceTypeClient}/t=default/$(date +%s).json\" \n"
-          - "  iperf3 --client $SERVER_PRIVATE_IP --time 30 --version4 --json --reverse -P 10 | jq -c '.' | aws s3 cp - \"s3://"
-          - 'Fn::ImportValue': !Sub '${ParentGlobalStack}-S3BucketName'
-          - !Sub "/d=$(date +%Y-%m-%d)/r=${AWS::Region}/it=${InstanceTypeClient}/t=reverse/$(date +%s).json\" \n"
+          - !Sub "/v2/d=$(date +%Y-%m-%d)/${InstanceTypeClient}-$(date +%s).json.gz\" \n"
           - "TRY\n"
           - !Sub "/opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource ClientMachineAutoScalingGroup \n"
   ClientMachineAutoScalingGroup:
@@ -118,7 +121,7 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: PT5M
+        Timeout: PT45M
   ServerMachineLaunchConfig:
     Type: 'AWS::AutoScaling::LaunchConfiguration'
     Properties:
@@ -156,7 +159,7 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: PT5M
+        Timeout: PT45M
 Outputs:
   StackName:
     Description: 'Stack name'
