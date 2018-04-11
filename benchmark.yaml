@@ -96,7 +96,7 @@ Resources:
           - "  sleep 60 \n"
           - !Sub "SERVER_INSTANCE_ID=$(aws autoscaling describe-auto-scaling-groups --region ${AWS::Region} --auto-scaling-group-name ${ServerMachineAutoScalingGroup} --query AutoScalingGroups[*].Instances[0].InstanceId --output text) \n"
           - !Sub "SERVER_PRIVATE_IP=$(aws ec2 describe-instances --region ${AWS::Region} --instance-ids $SERVER_INSTANCE_ID --query Reservations[0].Instances[0].PrivateIpAddress --output text) \n"
-          - " iperf3 --client $SERVER_PRIVATE_IP --time 1800 --interval 60 --version4 --json -P 10 | jq -c '{start: .start, intervals: .intervals, end: .end, instanceType: \""
+          - " iperf3 --client $SERVER_PRIVATE_IP --time 3600 --interval 60 --version4 --json -P 10 | jq -c '{start: .start, intervals: .intervals, end: .end, instanceType: \""
           - !Sub "${InstanceTypeClient}"
           - "\", region: \""
           - !Sub "${AWS::Region}"
@@ -121,7 +121,7 @@ Resources:
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: PT45M
+        Timeout: PT75M
   ServerMachineLaunchConfig:
     Type: 'AWS::AutoScaling::LaunchConfiguration'
     Properties:

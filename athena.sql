@@ -23,16 +23,19 @@ MSCK REPAIR TABLE networkbenchmark;
 
 # results in Gbit/s
 # counter = more or less minute of the benchmark
-# cardinality(intervals) => filter results with less than X intervals
+# cardinality(intervals): filter results with X intervals
 
 SELECT 
   (min(interval.sum.bits_per_second)/1000000000) AS min,
   (max(interval.sum.bits_per_second)/1000000000) AS max,
   (avg(interval.sum.bits_per_second)/1000000000) AS avg,
   (stddev(interval.sum.bits_per_second)/1000000000) AS stddev,
+  (approx_percentile(interval.sum.bits_per_second, 0.90)/1000000000) AS p90,
+  (approx_percentile(interval.sum.bits_per_second, 0.70)/1000000000) AS p70,
+    (approx_percentile(interval.sum.bits_per_second, 0.50)/1000000000) AS p50,
   region, 
   instancetype 
 FROM networkbenchmark CROSS JOIN UNNEST(intervals) WITH ORDINALITY AS t(interval, counter)
-WHERE d >= from_iso8601_date('2018-04-01') AND cardinality(intervals) >= 25 AND counter > 10 AND counter < 60
+WHERE d >= from_iso8601_date('2018-04-01') AND cardinality(intervals) = 30
 GROUP BY region, instancetype 
-ORDER BY region, instancetype
+ORDER BY region, instancetype;
