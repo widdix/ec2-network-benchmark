@@ -42,3 +42,13 @@ WHERE d >= from_iso8601_date('2018-05-01')
 GROUP BY region, instancetype, dataSize
 ORDER BY mbps_p90 DESC, region, instancetype, dataSize
 ```
+
+**Example Results:**
+
+| instancetype | dataSize | mbps_p90 | mbps_p70 | test_passes | cpuutilization_90 | enginecpuutilization_90 | cpuutilization_50 | enginecpuutilization_50 |
+| ------------ | -------- | -------- | -------- | ----------- | ----------------- | ----------------------- | ----------------- | ----------------------- |
+| `cache.r4.4xlarge`  | 100000 | 9211.309 | 9098.941  | 3 | 9.273073  | 49.221848 | 6.251554  | 46.502052 |
+| `cache.r4.8xlarge`  | 100000 | 9106.479 | 8965.279  | 3 | 5.1063986 | 49.136944 | 4.6466618 | 40.50802  |
+| `cache.m4.10xlarge` | 100000 | 8990.691 | 8957.348  | 2 | 2.3085928 | 39.05509  | 2.2267942 | 30.193382 |
+| `cache.r4.2xlarge`  | 100000 | 7828.376 | 7587.0874 | 3 | 32.194942 | 59.450256 | 26.06959  | 50.664406 |
+| `cache.r4.xlarge`   | 100000 | 6234.919 | 6155.1865 | 2 | 55.188168 | 61.926918 | 37.938736 | 59.221046 |

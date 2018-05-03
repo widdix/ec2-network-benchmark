@@ -225,17 +225,30 @@ Resources:
               exit 1
             fi
 
-            # Determine what the bandwidth was like for this period
-            aws cloudwatch get-metric-statistics \
-              --dimensions Name=CacheClusterId,Value=${ElastiCacheCluster} \
-              --end-time $(date --iso-8601=seconds) \
-              --extended-statistics ${BenchmarksList} \
-              --metric-name NetworkBytesOut \
-              --namespace AWS/ElastiCache \
-              --period $(($elapsedTime-($elapsedTime%60))) \
-              --region ${AWS::Region} \
-              --start-time $(date --iso-8601=seconds -d "-$elapsedTime seconds") \
-              | jq -cr '.Datapoints[0].ExtendedStatistics' \
+            # Collect metrics
+            for metric_name in \
+                NetworkBytesOut \
+                CPUUtilization \
+                EngineCPUUtilization
+            do
+              aws cloudwatch get-metric-statistics \
+                --dimensions Name=CacheClusterId,Value=${ElastiCacheCluster} \
+                --end-time $(date --iso-8601=seconds) \
+                --extended-statistics ${BenchmarksList} \
+                --metric-name $metric_name \
+                --namespace AWS/ElastiCache \
+                --period $(($elapsedTime-($elapsedTime%60))) \
+                --region ${AWS::Region} \
+                --start-time $(date --iso-8601=seconds -d "-$elapsedTime seconds") \
+                | jq -cr '.Datapoints[0].ExtendedStatistics' \
+                | jq -crs "{ $metric_name : .[0] }" \
+                >/tmp/$metric_name.json
+              done
+
+              # Join all metrics data, add benchmarking parameters, gzip, and
+              # ship to S3
+              cat /tmp/*.json \
+              | jq -crs add \
               | jq -cr '. + {benchmarkId: "${BenchmarkId}"}' \
               | jq -cr '. + {dataSize: ${RedisDataSize}}' \
               | jq -cr '. + {instanceCount: ${InstanceCountClient}}' \

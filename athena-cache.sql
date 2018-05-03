@@ -7,11 +7,27 @@ DROP TABLE IF EXISTS cachenetworkbenchmark;
 
 CREATE EXTERNAL TABLE IF NOT EXISTS cachenetworkbenchmark (
   benchmarkId string,
+  CPUUtilization struct<p50:float,
+                   p70:float,
+                   p90:float,
+                   p95:float,
+                   p99:float
+                  >,
   dataSize int,
+  EngineCPUUtilization struct<p50:float,
+                   p70:float,
+                   p90:float,
+                   p95:float,
+                   p99:float
+                  >,
   instanceType string,
   instanceTypeClient string,
-  p90 float,
-  p95 float,
+  NetworkBytesOut struct<p50:float,
+                   p70:float,
+                   p90:float,
+                   p95:float,
+                   p99:float
+                  >,
   region string
 )
 PARTITIONED BY (d date)
