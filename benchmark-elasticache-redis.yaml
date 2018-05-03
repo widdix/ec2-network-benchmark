@@ -23,10 +23,20 @@ Metadata:
       Parameters:
       - InstanceSubnet
 Parameters:
+  BenchmarkId:
+    Description: |
+      Unique identifier for an execution. Primarily used when InstanceCountClient is >1
+    Default: ''
+    Type: String
   Benchmarks:
     Description: CloudWatch extended statistics to measure
     Default: p50,p70,p90,p95,p99
     Type: CommaDelimitedList
+  InstanceCountClient:
+    Description: Number of client instances to run
+    Default: 1
+    MinValue: 1
+    Type: Number
   InstanceSubnet:
     Description: |
       Subnet to explicitly place ElastiCache & test instance into (overrides ParentVPCStack subnet import)
@@ -226,7 +236,7 @@ Resources:
               --region ${AWS::Region} \
               --start-time $(date --iso-8601=seconds -d "-$elapsedTime seconds") \
               | jq -cr '.Datapoints[0].ExtendedStatistics' \
-              | jq -cr '. + {benchmarkId: "${BenchmarkId}"' \
+              | jq -cr '. + {benchmarkId: "${BenchmarkId}"}' \
               | jq -cr '. + {dataSize: ${RedisDataSize}}' \
               | jq -cr '. + {instanceCount: ${InstanceCountClient}}' \
               | jq -cr '. + {instanceType: "${RedisInstanceType}"}' \
@@ -248,9 +258,9 @@ Resources:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       LaunchConfigurationName: !Ref ClientMachineLaunchConfig
-      MinSize: 1
-      MaxSize: 1
-      DesiredCapacity: 1
+      MinSize: !Ref InstanceCountClient
+      MaxSize: !Ref InstanceCountClient
+      DesiredCapacity: !Ref InstanceCountClient
       VPCZoneIdentifier:
         - !If
           - HasInstanceSubnet
@@ -262,7 +272,7 @@ Resources:
           PropagateAtLaunch: true
     CreationPolicy:
       ResourceSignal:
-        Count: 1
+        Count: !Ref InstanceCountClient
         Timeout: PT75M
 
 Outputs:
