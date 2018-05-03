@@ -8,10 +8,21 @@ Metadata:
         default: 'Parent Stacks'
       Parameters:
       - ParentVPCStack
+    - Label:
+        default: 'VPC Settings'
+      Parameters:
+      - VpcId
 Parameters:
   ParentVPCStack:
     Description: 'Stack name of parent VPC stack based on vpc/vpc-*azs.yaml template.'
+    Default: ''
     Type: String
+  VpcId:
+    Description: 'Explicit VPC Id (overrides ParentVPCStack import)'
+    Default: ''
+    Type: String
+Conditions:
+  HasVpcId: !Not [!Equals [!Ref VpcId, '']]
 Resources:
   S3Bucket:
     Type: 'AWS::S3::Bucket'
@@ -20,8 +31,10 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: !Sub '${AWS::StackName}-client'
-      VpcId:
-        'Fn::ImportValue': !Sub '${ParentVPCStack}-VPC'
+      VpcId: !If
+        - HasVpcId
+        - !Ref VpcId
+        - 'Fn::ImportValue': !Sub '${ParentVPCStack}-VPC'
   SecurityGroupIngressIperf:
     Type: 'AWS::EC2::SecurityGroupIngress'
     Properties:

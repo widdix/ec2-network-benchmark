@@ -4,6 +4,7 @@ Description: 'EC2 Network Benchmark: global (wrapper)'
 Parameters:
   ParentVPCStack:
     Description: 'Stack name of parent VPC stack based on vpc/vpc-*azs.yaml template.'
+    Default: ''
     Type: String
   S3BucketName:
     Description: 'A wrapper for the S3BucketName'
@@ -11,6 +12,12 @@ Parameters:
   IAMInstanceProfileName:
     Description: 'A wrapper for the IAMInstanceProfileName'
     Type: String
+  VpcId:
+    Description: 'Explicit VPC Id (overrides ParentVPCStack import)'
+    Default: ''
+    Type: String
+Conditions:
+  HasVpcId: !Not [!Equals [!Ref VpcId, '']]
 Resources:
   SecurityGroup:
     Type: AWS::EC2::SecurityGroup
