@@ -70,6 +70,13 @@ Resources:
             - 'autoscaling:DescribeAutoScalingGroups'
             - 'ec2:DescribeInstances'
             Resource: '*'
+      - PolicyName: cloudwatch
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: 'cloudwatch:getMetricStatistics'
+            Resource: '*'
 Outputs:
   StackName:
     Description: 'Stack name'
