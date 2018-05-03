@@ -18,7 +18,7 @@ Resources:
       GroupDescription: !Sub '${AWS::StackName}-client'
       VpcId:
         'Fn::ImportValue': !Sub '${ParentVPCStack}-VPC'
-  SecurityGroupIngress:
+  SecurityGroupIngressIperf:
     Type: 'AWS::EC2::SecurityGroupIngress'
     Properties:
       GroupId: !Sub '${SecurityGroup.GroupId}'
@@ -26,9 +26,17 @@ Resources:
       FromPort: '5201'
       ToPort: '5201'
       SourceSecurityGroupId: !Sub '${SecurityGroup.GroupId}'
+  SecurityGroupIngressRedis:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Properties:
+      GroupId: !Sub '${SecurityGroup.GroupId}'
+      IpProtocol: tcp
+      FromPort: '6379'
+      ToPort: '6379'
+      SourceSecurityGroupId: !Sub '${SecurityGroup.GroupId}'
 Outputs:
   SecurityGroupId:
-    Description: 'The security group id allowing traffic for ipref3.'
+    Description: 'The security group id allowing traffic for ipref3 & redis'
     Value: !Sub '${SecurityGroup.GroupId}'
     Export:
       Name: !Sub '${AWS::StackName}-SecurityGroupId'
