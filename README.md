@@ -9,3 +9,10 @@ All you need to run your own Network Benchmarks on EC2.
 1. Create a stack based on `benchmark.yaml` to run a network benchmark or use one of the `benchmark-*.sh` scripts to do so.
 
 Create a stack based on `global-wrapper.yaml` if you want to run your network benchmark in multiple regions. Requires a stack based on `global.yaml` within another region.
+
+- - -
+
+# ec2-network-benchmark
+
+## ElastiCache
+_See scripts `benchmark-cache.{family}.sh`_
