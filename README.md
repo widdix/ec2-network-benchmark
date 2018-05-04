@@ -19,12 +19,16 @@ _See scripts `benchmark-cache.{family}.sh`_
 
 ### Querying Results
 #### Highest Bandwidth Test Configurations
-If you have run tests with various data sizes (`RedisDataSize` parameter in
+If you have run tests with various data sizes (`RedisDataSizes` parameter in
 [benchmark-elasticache-redis.yaml](benchmark-elasticache-redis.yaml)), the
 following query will show you under which size data you'll get what level
 of bandwidth performance from. Ideally, you should profile what your data
 sizes are in your target environment, and what traffic level they tend to
 receive, and pick one-or-more data size parameters to exercise.
+
+_Note: Keep in mind the creation time limit is 75 minutes. Depending on the
+test duration being used and number of data sizes, it's possible to have your
+tests never complete._
 
 ```sql
 SELECT

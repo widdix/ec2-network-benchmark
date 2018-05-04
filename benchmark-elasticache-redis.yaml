@@ -67,11 +67,10 @@ Parameters:
     Description: (optional) explicit Redis engine version
     Default: ''
     Type: String
-  RedisDataSize:
-    Description: Size (in bytes) to feed redis-benchmark -d
-    Default: 1024
-    MinValue: 100
-    Type: Number
+  RedisDataSizes:
+    Description: Sizes (in bytes) to feed redis-benchmark -d
+    Default: 1000,10000,100000
+    Type: CommaDelimitedList
   RedisInstanceType:
     Description: The instance type for the Redis instance.
     Type: String
@@ -196,74 +195,81 @@ Resources:
               jq \
               redis-benchmark
 
-            # Set some arbitrary keys
-            redis-benchmark \
-              -h ${ElastiCacheCluster.RedisEndpoint.Address} \
-              -p ${ElastiCacheCluster.RedisEndpoint.Port} \
-              -t set \
-              -d ${RedisDataSize} \
-              -q
+            [ -n "${DataSizes}" ] \
+              && echo "Testing sizes: ${DataSizes}"
 
-            # Execute the test for the specified time
-            startTime=$(date +%s)
-            set +e
-            timeout ${TestDuration} \
+            for data_size in ${DataSizes}
+            do
+              # Set some arbitrary keys
               redis-benchmark \
                 -h ${ElastiCacheCluster.RedisEndpoint.Address} \
                 -p ${ElastiCacheCluster.RedisEndpoint.Port} \
-                -t get \
-                -d ${RedisDataSize} \
-                -n 100000000 \
+                -t set \
+                -d $data_size \
                 -q
-            set -e
-            timeNow=$(date +%s)
-            elapsedTime=$(($timeNow-$startTime))
 
-            if [[ $elapsedTime -eq 0 ]]
-            then
-              echo "Failed to run redis-benchmark"
-              exit 1
-            fi
+              # Execute the test for the specified time
+              startTime=$(date +%s)
+              set +e
+              timeout ${TestDuration} \
+                redis-benchmark \
+                  -h ${ElastiCacheCluster.RedisEndpoint.Address} \
+                  -p ${ElastiCacheCluster.RedisEndpoint.Port} \
+                  -t get \
+                  -d $data_size \
+                  -n 100000000 \
+                  -q
+              set -e
+              timeNow=$(date +%s)
+              elapsedTime=$(($timeNow-$startTime))
 
-            # Collect metrics
-            for metric_name in \
-                NetworkBytesOut \
-                CPUUtilization \
-                EngineCPUUtilization
-            do
-              aws cloudwatch get-metric-statistics \
-                --dimensions Name=CacheClusterId,Value=${ElastiCacheCluster} \
-                --end-time $(date --iso-8601=seconds) \
-                --extended-statistics ${BenchmarksList} \
-                --metric-name $metric_name \
-                --namespace AWS/ElastiCache \
-                --period $(($elapsedTime-($elapsedTime%60))) \
-                --region ${AWS::Region} \
-                --start-time $(date --iso-8601=seconds -d "-$elapsedTime seconds") \
-                | jq -cr '.Datapoints[0].ExtendedStatistics' \
-                | jq -crs "{ $metric_name : .[0] }" \
-                >/tmp/$metric_name.json
-              done
+              if [[ $elapsedTime -eq 0 ]]
+              then
+                echo "Failed to run redis-benchmark"
+                exit 1
+              fi
 
-              # Join all metrics data, add benchmarking parameters, gzip, and
-              # ship to S3
-              cat /tmp/*.json \
-              | jq -crs add \
-              | jq -cr '. + {benchmarkId: "${BenchmarkId}"}' \
-              | jq -cr '. + {dataSize: ${RedisDataSize}}' \
-              | jq -cr '. + {instanceCount: ${InstanceCountClient}}' \
-              | jq -cr '. + {instanceType: "${RedisInstanceType}"}' \
-              | jq -cr '. + {instanceTypeClient: "${InstanceTypeClient}"}' \
-              | jq -cr '. + {region: "${AWS::Region}"}' \
-              | jq -cr ". + {stamp: $timeNow}" \
-              | jq -cr '. + {testDuration: ${TestDuration}}' \
-              | jq -cr ". + {testElapsed: $elapsedTime}" \
-              | gzip \
-              | aws s3 cp \
-                - \
-                "s3://${DestinationBucket}/v2-cache/d=$(date +%Y-%m-%d)/${RedisInstanceType}-$(date +%s).json.gz"
+              # Collect metrics
+              for metric_name in \
+                  NetworkBytesOut \
+                  CPUUtilization \
+                  EngineCPUUtilization
+              do
+                aws cloudwatch get-metric-statistics \
+                  --dimensions Name=CacheClusterId,Value=${ElastiCacheCluster} \
+                  --end-time $(date --iso-8601=seconds) \
+                  --extended-statistics ${BenchmarksList} \
+                  --metric-name $metric_name \
+                  --namespace AWS/ElastiCache \
+                  --period $(($elapsedTime-($elapsedTime%60))) \
+                  --region ${AWS::Region} \
+                  --start-time $(date --iso-8601=seconds -d "-$elapsedTime seconds") \
+                  | jq -cr '.Datapoints[0].ExtendedStatistics' \
+                  | jq -crs "{ $metric_name : .[0] }" \
+                  >/tmp/$metric_name.json
+                done
+
+                # Join all metrics data, add benchmarking parameters, gzip, and
+                # ship to S3
+                cat /tmp/*.json \
+                | jq -crs add \
+                | jq -cr '. + {benchmarkId: "${BenchmarkId}"}' \
+                | jq -cr ". + {dataSize: $data_size}" \
+                | jq -cr '. + {instanceCount: ${InstanceCountClient}}' \
+                | jq -cr '. + {instanceType: "${RedisInstanceType}"}' \
+                | jq -cr '. + {instanceTypeClient: "${InstanceTypeClient}"}' \
+                | jq -cr '. + {region: "${AWS::Region}"}' \
+                | jq -cr ". + {stamp: $timeNow}" \
+                | jq -cr '. + {testDuration: ${TestDuration}}' \
+                | jq -cr ". + {testElapsed: $elapsedTime}" \
+                | gzip \
+                | aws s3 cp \
+                  - \
+                  "s3://${DestinationBucket}/v2-cache/d=$(date +%Y-%m-%d)/${RedisInstanceType}-$(date +%s).json.gz"
+            done
           -
             BenchmarksList: !Join [' ', !Ref Benchmarks]
+            DataSizes: !Join [' ', !Ref RedisDataSizes]
             DestinationBucket:
               Fn::ImportValue: !Sub ${ParentGlobalStack}-S3BucketName
 
