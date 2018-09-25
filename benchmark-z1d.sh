@@ -23,34 +23,31 @@ function wait_delete_complete {
   aws cloudformation wait stack-delete-complete --stack-name ec2-network-benchmark-${1//./-}
 }
 
-create i3.large 0.172
-create i3.xlarge 0.344
-create i3.2xlarge 0.688
-create i3.4xlarge 1.376
-create i3.8xlarge 2.752
-create i3.16xlarge 5.504
-create i3.metal 5.504
+create z1d.large 0.208
+create z1d.xlarge 0.416
+create z1d.2xlarge 0.832
+create z1d.3xlarge 1.248
+create z1d.6xlarge 2.496
+create z1d.12xlarge 4.992
 
-wait_create_complete i3.large
-wait_create_complete i3.xlarge
-wait_create_complete i3.2xlarge
-wait_create_complete i3.4xlarge
-wait_create_complete i3.8xlarge
-wait_create_complete i3.16xlarge
-wait_create_complete i3.metal
+wait_create_complete z1d.large
+wait_create_complete z1d.xlarge
+wait_create_complete z1d.2xlarge
+wait_create_complete z1d.3xlarge
+wait_create_complete z1d.6xlarge
+wait_create_complete z1d.12xlarge
 
-delete i3.large
-delete i3.xlarge
-delete i3.2xlarge
-delete i3.4xlarge
-delete i3.8xlarge
-delete i3.16xlarge
-delete i3.metal
+delete z1d.large
+delete z1d.xlarge
+delete z1d.2xlarge
+delete z1d.3xlarge
+delete z1d.6xlarge
+delete z1d.12xlarge
 
-wait_delete_complete i3.large
-wait_delete_complete i3.xlarge
-wait_delete_complete i3.2xlarge
-wait_delete_complete i3.4xlarge
-wait_delete_complete i3.8xlarge
-wait_delete_complete i3.16xlarge
-wait_delete_complete i3.metal
+wait_delete_complete z1d.large
+wait_delete_complete z1d.xlarge
+wait_delete_complete z1d.2xlarge
+wait_delete_complete z1d.3xlarge
+wait_delete_complete z1d.6xlarge
+wait_delete_complete z1d.12xlarge
+
