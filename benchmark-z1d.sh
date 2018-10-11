@@ -25,9 +25,9 @@ function wait_delete_complete {
 
 create z1d.large 0.208
 create z1d.xlarge 0.416
-create z1d.2xlarge 0.832
-create z1d.3xlarge 1.248
-create z1d.6xlarge 2.496
+create z1d.2xlarge 0
+create z1d.3xlarge 0
+create z1d.6xlarge 0
 create z1d.12xlarge 4.992
 
 wait_create_complete z1d.large

@@ -23,12 +23,12 @@ function wait_delete_complete {
   aws cloudformation wait stack-delete-complete --stack-name ec2-network-benchmark-${1//./-}
 }
 
-create r5.large 0.141
-create r5.xlarge 0.282
-create r5.2xlarge 0.564
-create r5.4xlarge 1.128
-create r5.12xlarge 3.384
-create r5.24xlarge 6.768
+create r5.large 0
+create r5.xlarge 0
+create r5.2xlarge 0
+create r5.4xlarge 0
+create r5.12xlarge 0
+create r5.24xlarge 0
 
 wait_create_complete r5.large
 wait_create_complete r5.xlarge
