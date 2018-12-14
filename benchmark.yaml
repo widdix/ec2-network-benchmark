@@ -40,39 +40,52 @@ Parameters:
     Default: 0
 Mappings:
   RegionMap:
-    'ap-south-1':
-      AMI: 'ami-531a4c3c'
-    'eu-west-3':
-      AMI: 'ami-8ee056f3'
-    'eu-west-2':
-      AMI: 'ami-403e2524'
-    'eu-west-1':
-      AMI: 'ami-d834aba1'
-    'ap-northeast-2':
-      AMI: 'ami-863090e8'
-    'ap-northeast-1':
-      AMI: 'ami-ceafcba8'
-    'sa-east-1':
-      AMI: 'ami-84175ae8'
-    'ca-central-1':
-      AMI: 'ami-a954d1cd'
-    'ap-southeast-1':
-      AMI: 'ami-68097514'
-    'ap-southeast-2':
-      AMI: 'ami-942dd1f6'
-    'eu-central-1':
-      AMI: 'ami-5652ce39'
-    'us-east-1':
-      AMI: 'ami-97785bed'
-    'us-east-2':
-      AMI: 'ami-f63b1193'
-    'us-west-1':
-      AMI: 'ami-824c4ee2'
-    'us-west-2':
-      AMI: 'ami-f2d3638a'
+    # AMD64:
+    #   CreationDate: '2018-11-14T09:06:55.000Z'
+    #   Name: amzn2-ami-hvm-2.0.20181114-x86_64-gp2
+    #   Owner: amazon
+    # ARM64:
+    #   CreationDate: '2018-11-27T03:53:23.000Z'
+    #   Name: amzn2-ami-hvm-2.0.20181114.1-arm64-gp2
+    #   Owner: amazon
+    ap-northeast-1:
+      AMD64: ami-0a2de1c3b415889d2
+    ap-northeast-2:
+      AMD64: ami-0b4fdb56a00adb616
+    ap-south-1:
+      AMD64: ami-06bcd1131b2f55803
+    ap-southeast-1:
+      AMD64: ami-0b84d2c53ad5250c2
+    ap-southeast-2:
+      AMD64: ami-08589eca6dcc9b39c
+    ca-central-1:
+      AMD64: ami-076b4adb3f90cd384
+    eu-central-1:
+      AMD64: ami-034fffcc6a0063961
+    eu-west-1:
+      AMD64: ami-09693313102a30b2c
+      ARM64: ami-0b97e17c772f052e6
+    eu-west-2:
+      AMD64: ami-0274e11dced17bb5b
+    eu-west-3:
+      AMD64: ami-051707cdba246187b
+    sa-east-1:
+      AMD64: ami-0112d42866980b373
+    us-east-1:
+      AMD64: ami-009d6802948d06e52
+      ARM64: ami-0f8c82faeb08f15da
+    us-east-2:
+      AMD64: ami-02e680c4540db351e
+      ARM64: ami-0998858ab6ad47da8
+    us-west-1:
+      AMD64: ami-011b6930a81cd6aaf
+    us-west-2:
+      AMD64: ami-01bbe152bf19d0289
+      ARM64: ami-0f374ff3bc5bb0929
 Conditions:
   HasSpotPriceClient: !Not [!Equals [!Ref SpotPriceClient, 0]]
   HasSpotPriceServer: !Not [!Equals [!Ref SpotPriceServer, 0]]
+  IsArmInstance: !Equals [ !Select [ 0, !Split ['.',  !Ref InstanceTypeClient] ], 'a1' ]
 Resources:
   ClientMachineLaunchConfig:
     Type: 'AWS::AutoScaling::LaunchConfiguration'
@@ -80,17 +93,22 @@ Resources:
       SpotPrice: !If [HasSpotPriceClient, !Ref SpotPriceClient, !Ref 'AWS::NoValue']
       IamInstanceProfile:
         'Fn::ImportValue': !Sub '${ParentGlobalStack}-IAMInstanceProfileName'
-      ImageId: !FindInMap [RegionMap, !Ref 'AWS::Region', AMI]
+      ImageId:
+        Fn::If:
+          - IsArmInstance
+          - !FindInMap [RegionMap, !Ref 'AWS::Region', ARM64]
+          - !FindInMap [RegionMap, !Ref 'AWS::Region', AMD64]
       InstanceType: !Ref InstanceTypeClient
       SecurityGroups:
       - 'Fn::ImportValue': !Sub '${ParentGlobalStack}-SecurityGroupId'
       InstanceMonitoring: true
-      UserData: 
+      UserData:
         'Fn::Base64': !Join
         - ''
         - - "#!/bin/bash -x \n"
           - "bash -ex << \"TRY\"\n"
-          - "  yum-config-manager --enable epel \n"
+          - "  amazon-linux-extras enable epel \n"
+          - "  yum install -y epel-release \n"
           - "  yum clean all \n"
           - "  yum -y install iperf3 jq \n"
           - "  sleep 60 \n"
@@ -128,7 +146,7 @@ Resources:
       SpotPrice: !If [HasSpotPriceServer, !Ref SpotPriceServer, !Ref 'AWS::NoValue']
       IamInstanceProfile:
         'Fn::ImportValue': !Sub '${ParentGlobalStack}-IAMInstanceProfileName'
-      ImageId: !FindInMap [RegionMap, !Ref 'AWS::Region', AMI]
+      ImageId: !FindInMap [RegionMap, !Ref 'AWS::Region', AMD64]
       InstanceType: !Ref InstanceTypeServer
       SecurityGroups:
       - 'Fn::ImportValue': !Sub '${ParentGlobalStack}-SecurityGroupId'
