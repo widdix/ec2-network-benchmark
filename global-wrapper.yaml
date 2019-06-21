@@ -28,7 +28,7 @@ Resources:
       SourceSecurityGroupId: !Sub '${SecurityGroup.GroupId}'
 Outputs:
   SecurityGroupId:
-    Description: 'The security group id allowing traffic for ipref3.'
+    Description: 'The security group id allowing traffic for iperf3.'
     Value: !Sub '${SecurityGroup.GroupId}'
     Export:
       Name: !Sub '${AWS::StackName}-SecurityGroupId'
